@@ -9,7 +9,7 @@
 <body>
   <header class="topbar">
     <div class="container topbar-inner">
-      <div class="brand">MCJAVASERVER</div>
+      <div class="brand" id="brand">MCJAVASERVER</div>
       <nav class="nav">
         <a href="#" class="nav-link">Dashboard</a>
         <a href="#" class="nav-link">Server</a>
@@ -39,6 +39,7 @@
           <div id="loginMsg" class="msg"></div>
         </div>
       </div>
+      <div id="publicInfo" class="public-info" style="margin-top:16px"></div>
     </section>
 
     <section id="admin" class="card admin-card" style="display:none">
@@ -60,6 +61,23 @@
         <input id="cmdInput" class="input cmd-input" placeholder="enter server command (e.g. say hello)" />
         <button id="sendCmd" class="btn btn-primary">Send</button>
       </div>
+
+      <details id="settingsPanel" style="margin-top:14px">
+        <summary class="muted">Site settings (visible to admin)</summary>
+        <div style="margin-top:12px">
+          <label>Site name</label>
+          <input id="siteName" class="input" />
+          <h4 style="margin-top:12px">Info boxes</h4>
+          <div id="boxesList"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <input id="newBoxTitle" class="input" placeholder="Title" />
+            <input id="newBoxContent" class="input" placeholder="Content" />
+            <button id="addBox" class="btn">Add</button>
+          </div>
+          <div style="margin-top:10px"><button id="saveSettings" class="btn btn-primary">Save settings</button></div>
+        </div>
+      </details>
+
     </section>
 
     <footer class="muted center small">Running locally — remember to set a strong JWT_SECRET and secure the server before exposing publicly.</footer>

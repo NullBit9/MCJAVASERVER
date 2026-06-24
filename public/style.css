@@ -38,4 +38,8 @@ h2{margin:0 0 8px}
 .cmd-input{flex:1}
 .small{font-size:13px}
 .center{text-align:center}
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.info-card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.015));padding:12px;border-radius:8px;border:1px solid rgba(255,255,255,0.02)}
+.info-card h4{margin:0 0 6px}
+.box-row .input{flex:1}
 @media (max-width:640px){.admin-header{flex-direction:column;align-items:flex-start}.admin-actions{margin-top:10px;}}

@@ -46,6 +46,16 @@ async function initDb() {
     username TEXT UNIQUE,
     password_hash TEXT
   )`);
+  await dbRun(`CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  )`);
+  // Ensure default site settings exist
+  const row = await dbGet('SELECT value FROM settings WHERE key = ?', ['site_config']);
+  if (!row) {
+    const defaultConfig = { siteName: 'MCJAVASERVER', infoBoxes: [] };
+    await dbRun('INSERT INTO settings(key,value) VALUES(?,?)', ['site_config', JSON.stringify(defaultConfig)]);
+  }
 }
 initDb().catch(console.error);
 
@@ -119,6 +129,51 @@ app.get('/api/me', (req, res) => {
   res.json({ username: user.username, id: user.id });
 });
 
+// Settings helpers
+async function getSiteConfig() {
+  const row = await dbGet('SELECT value FROM settings WHERE key = ?', ['site_config']);
+  if (!row) return { siteName: 'MCJAVASERVER', infoBoxes: [] };
+  try { return JSON.parse(row.value); } catch (e) { return { siteName: 'MCJAVASERVER', infoBoxes: [] }; }
+}
+async function setSiteConfig(obj) {
+  const value = JSON.stringify(obj);
+  await dbRun('INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)', ['site_config', value]);
+}
+
+// Public settings returned to any visitor
+app.get('/api/public-settings', async (req, res) => {
+  const config = await getSiteConfig();
+  // Only return fields intended for public consumption
+  const publicConfig = { siteName: config.siteName || 'MCJAVASERVER', infoBoxes: config.infoBoxes || [] };
+  res.json(publicConfig);
+});
+
+// Admin endpoints to view and update settings
+app.get('/api/settings', async (req, res) => {
+  const user = authenticateFromReq(req);
+  if (!user) return res.status(401).json({ error: 'unauth' });
+  const config = await getSiteConfig();
+  res.json(config);
+});
+
+app.post('/api/settings', async (req, res) => {
+  const user = authenticateFromReq(req);
+  if (!user) return res.status(401).json({ error: 'unauth' });
+  const { siteName, infoBoxes } = req.body;
+  if (typeof siteName !== 'string' || siteName.length === 0) return res.status(400).json({ error: 'siteName required' });
+  if (!Array.isArray(infoBoxes)) return res.status(400).json({ error: 'infoBoxes must be array' });
+  // Basic validation: each box has title and content
+  for (const b of infoBoxes) {
+    if (typeof b.title !== 'string' || typeof b.content !== 'string') return res.status(400).json({ error: 'invalid infoBoxes format' });
+  }
+  const config = { siteName, infoBoxes };
+  try {
+    await setSiteConfig(config);
+    res.json({ ok: true });
+  } catch (e) { console.error(e); res.status(500).json({ error: 'save failed' }); }
+});
+
+// RCON helpers and command endpoints
 async function ensureRconInfo() {
   if (rconInfo) return rconInfo;
   const propsPath = path.join(__dirname, 'minecraft', 'server.properties');
