@@ -1,0 +1,41 @@
+/* Simple Render-like clean styles for MCJAVASERVER UI */
+:root{
+  --bg:#0f1724; /* deep navy */
+  --card:#0b1220;
+  --muted:#9aa6b2;
+  --accent:#3b82f6; /* blue-500 */
+  --accent-600:#2563eb;
+  --glass: rgba(255,255,255,0.03);
+  --radius:10px;
+  --text:#e6eef6;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', 'Courier New', monospace;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:linear-gradient(180deg,var(--bg),#071025);color:var(--text);font-family:Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;}
+.container{max-width:980px;margin:28px auto;padding:0 20px}
+.topbar{background:transparent;padding:14px 0}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between}
+.brand{font-weight:700;font-size:18px;color:var(--text)}
+.nav{display:flex;gap:12px}
+.nav-link{color:var(--muted);text-decoration:none;font-size:14px}
+.card{background:linear-gradient(180deg,var(--card), rgba(10,14,20,0.6));border-radius:var(--radius);padding:18px;box-shadow:0 6px 18px rgba(2,6,23,0.6);margin-bottom:18px}
+.auth-card{display:flex;align-items:center;justify-content:center;padding:28px}
+.auth-pane{width:100%;max-width:520px}
+h2{margin:0 0 8px}
+.muted{color:var(--muted);margin:0 0 12px}
+.input{width:100%;padding:10px 12px;background:var(--glass);border:1px solid rgba(255,255,255,0.04);border-radius:8px;color:var(--text);margin-bottom:10px}
+.actions{display:flex;justify-content:flex-end}
+.btn{background:transparent;border:1px solid rgba(255,255,255,0.06);color:var(--text);padding:8px 12px;border-radius:8px;cursor:pointer}
+.btn-primary{background:linear-gradient(180deg,var(--accent),var(--accent-600));border:none;color:white}
+.btn-ghost{background:transparent}
+.msg{margin-top:10px;color:var(--muted);min-height:18px}
+.admin-card{padding:12px}
+.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.admin-actions{display:flex;gap:8px}
+.console{background:#03050a;border-radius:8px;padding:12px;height:420px;overflow:auto;font-family:var(--mono);font-size:13px;color:#c7d2e6;border:1px solid rgba(255,255,255,0.03)}
+.cmd-row{display:flex;gap:8px;margin-top:12px}
+.cmd-input{flex:1}
+.small{font-size:13px}
+.center{text-align:center}
+@media (max-width:640px){.admin-header{flex-direction:column;align-items:flex-start}.admin-actions{margin-top:10px;}}

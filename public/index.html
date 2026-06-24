@@ -1,45 +1,69 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MCJAVASERVER — Web Console</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
-    #console { width: 100%; height: 400px; background: #111; color: #eee; padding: 8px; overflow:auto; white-space: pre-wrap; }
-    input, button { padding: 8px; margin: 4px; }
-  </style>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>MCJAVASERVER</h1>
-  <div id="auth">
-    <div id="registerBox" style="display:none">
-      <h2>Register (first visitor)</h2>
-      <input id="regUser" placeholder="username" /><br/>
-      <input id="regPass" type="password" placeholder="password" /><br/>
-      <button id="doRegister">Create account</button>
-      <div id="regMsg"></div>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">MCJAVASERVER</div>
+      <nav class="nav">
+        <a href="#" class="nav-link">Dashboard</a>
+        <a href="#" class="nav-link">Server</a>
+        <a href="#" class="nav-link">Settings</a>
+      </nav>
     </div>
+  </header>
 
-    <div id="loginBox" style="display:none">
-      <h2>Login</h2>
-      <input id="loginUser" placeholder="username" /><br/>
-      <input id="loginPass" type="password" placeholder="password" /><br/>
-      <button id="doLogin">Login</button>
-      <div id="loginMsg"></div>
-    </div>
-  </div>
+  <main class="container">
+    <section class="card auth-card">
+      <div id="auth" class="auth">
+        <div id="registerBox" class="auth-pane" style="display:none">
+          <h2>Create your admin account</h2>
+          <p class="muted">This site allows a single initial admin account. Create your username and password.</p>
+          <input id="regUser" class="input" placeholder="Username" autocomplete="username" />
+          <input id="regPass" class="input" type="password" placeholder="Password (min 8 chars)" autocomplete="new-password" />
+          <div class="actions"><button id="doRegister" class="btn btn-primary">Create account</button></div>
+          <div id="regMsg" class="msg"></div>
+        </div>
 
-  <div id="admin" style="display:none">
-    <h2>Admin Console</h2>
-    <button id="startBtn">Start Server</button>
-    <button id="stopBtn">Stop Server</button>
-    <button id="seedBtn">Get Seed</button>
-    <div id="console" aria-live="polite"></div>
-    <div>
-      <input id="cmdInput" placeholder="enter server command (e.g. say hello)" style="width:70%" />
-      <button id="sendCmd">Send</button>
-    </div>
-  </div>
+        <div id="loginBox" class="auth-pane" style="display:none">
+          <h2>Sign in</h2>
+          <p class="muted">Sign in with your admin account to control the server.</p>
+          <input id="loginUser" class="input" placeholder="Username" autocomplete="username" />
+          <input id="loginPass" class="input" type="password" placeholder="Password" autocomplete="current-password" />
+          <div class="actions"><button id="doLogin" class="btn btn-primary">Sign in</button></div>
+          <div id="loginMsg" class="msg"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="admin" class="card admin-card" style="display:none">
+      <div class="admin-header">
+        <div>
+          <h3>Server Console</h3>
+          <p class="muted">Control your Minecraft server from the web — start, stop, run commands, and view logs.</p>
+        </div>
+        <div class="admin-actions">
+          <button id="startBtn" class="btn">Start Server</button>
+          <button id="stopBtn" class="btn btn-ghost">Stop Server</button>
+          <button id="seedBtn" class="btn btn-ghost">Get Seed</button>
+        </div>
+      </div>
+
+      <div id="console" class="console" aria-live="polite" role="log"></div>
+
+      <div class="cmd-row">
+        <input id="cmdInput" class="input cmd-input" placeholder="enter server command (e.g. say hello)" />
+        <button id="sendCmd" class="btn btn-primary">Send</button>
+      </div>
+    </section>
+
+    <footer class="muted center small">Running locally — remember to set a strong JWT_SECRET and secure the server before exposing publicly.</footer>
+  </main>
 
   <script src="/app.js"></script>
 </body>
