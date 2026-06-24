@@ -1,21 +1,23 @@
 {
   "name": "mcjavaserver",
-  "version": "0.1.0",
-  "description": "Minecraft Java 1.26.2 server + web console (first-visitor registration)",
+  "version": "0.1.1",
+  "description": "Minecraft Java server + web console (first-visitor registration)",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "NODE_ENV=development node server.js",
     "postinstall": "node scripts/setupServer.js"
   },
-  "keywords": ["minecraft","paper","console","web","rcon","server"],
+  "keywords": ["minecraft","vanilla","console","web","rcon","server"],
   "author": "",
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^5.1.0",
     "express": "^4.18.2",
+    "express-rate-limit": "^6.7.0",
     "jsonwebtoken": "^9.0.0",
     "node-fetch": "^3.4.1",
+    "rcon-client": "^5.0.0",
     "sqlite3": "^5.1.6",
     "ws": "^8.13.0"
   }

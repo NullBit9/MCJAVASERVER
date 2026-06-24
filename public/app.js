@@ -43,15 +43,15 @@
 
   async function showAdmin(token) {
     adminBox.style.display = 'block';
-    // Setup websocket
-    const t = token || localStorage.getItem('mc_token');
-    const ws = new WebSocket((location.protocol==='https:'?'wss://':'ws://') + location.host + '/ws/console?token=' + encodeURIComponent(t));
+    // Setup websocket - we rely on cookie-based auth for the websocket so no token in query string
+    const ws = new WebSocket((location.protocol==='https:'?'wss://':'ws://') + location.host + '/ws/console');
     ws.onopen = () => addLine('[WS connected]');
     ws.onmessage = (ev) => {
       try {
         const obj = JSON.parse(ev.data);
         if (obj.type === 'console') addLine(obj.line);
         else if (obj.type === 'info') addLine('[info] ' + (obj.msg||''));
+        else if (obj.type === 'cmdResponse') addLine('[cmd response] ' + (obj.response||''));
       } catch(e) { addLine(ev.data); }
     };
     ws.onclose = () => addLine('[WS closed]');
@@ -61,8 +61,9 @@
     el('stopBtn').onclick = async () => {
       await fetch('/api/stop', { method: 'POST', headers: { ...(authHeaders()), 'content-type':'application/json' }});
     };
-    el('sendCmd').onclick = () => {
+    el('sendCmd').onclick = async () => {
       const c = el('cmdInput').value;
+      // Send command via WebSocket so we get response back
       ws.send(JSON.stringify({ type:'cmd', cmd: c }));
       el('cmdInput').value = '';
     };

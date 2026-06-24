@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // Download vanilla Minecraft server jar for the requested version (default: latest release from manifest).
 // Supports new Mojang version strings like "26.2" as well as legacy "1.26.2".
-// Uses Mojang's version manifest to locate the server download and writes ./minecraft/eula.txt
+// Uses Mojang's version manifest to locate the server download and writes ./minecraft/eula.txt and a server.properties with RCON enabled.
 const fs = require('fs');
 const path = require('path');
 const fetch = require('node-fetch');
+const crypto = require('crypto');
 
 let version = process.env.MC_VERSION || '';
 const outDir = path.resolve(__dirname, '..', 'minecraft');
@@ -17,18 +18,27 @@ async function fileExists(p) {
   try { await fs.promises.access(p); return true; } catch { return false; }
 }
 
-async function download(url, dest) {
+async function download(url, dest, attempts = 3) {
   console.log('Downloading', url);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Download failed ' + res.status + ' ' + res.statusText);
-  const tmp = dest + '.tmp';
-  const fileStream = fs.createWriteStream(tmp);
-  await new Promise((resP, rej) => {
-    res.body.pipe(fileStream);
-    res.body.on('error', rej);
-    fileStream.on('finish', resP);
-  });
-  await fs.promises.rename(tmp, dest);
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Download failed ' + res.status + ' ' + res.statusText);
+      const tmp = dest + '.tmp';
+      const fileStream = fs.createWriteStream(tmp);
+      await new Promise((resP, rej) => {
+        res.body.pipe(fileStream);
+        res.body.on('error', rej);
+        fileStream.on('finish', resP);
+      });
+      await fs.promises.rename(tmp, dest);
+      return;
+    } catch (err) {
+      console.warn(`Download attempt ${i+1} failed: ${err.message}`);
+      if (i + 1 === attempts) throw err;
+      await new Promise(r => setTimeout(r, 1500 * (i+1)));
+    }
+  }
 }
 
 async function downloadVanillaServer() {
@@ -52,7 +62,7 @@ async function downloadVanillaServer() {
 
   // Try matching the provided version intelligently. Mojang may have switched to versions like "26.2".
   const candidates = [version];
-  if (!version.startsWith('1.') && !version.startsWith('snapshot')) {
+  if (!version.startsWith('1.') && !version.toLowerCase().includes('snapshot')) {
     // also try with leading "1." for older-style entries
     candidates.push('1.' + version);
   }
@@ -97,11 +107,30 @@ async function ensureEula() {
   }
 }
 
+async function ensureServerProperties() {
+  const propsPath = path.join(outDir, 'server.properties');
+  if (fs.existsSync(propsPath)) {
+    console.log('server.properties exists, not overwriting');
+    return;
+  }
+  const rconPassword = crypto.randomBytes(12).toString('hex');
+  const props = [];
+  props.push('enable-rcon=true');
+  props.push('rcon.password=' + rconPassword);
+  props.push('rcon.port=25575');
+  props.push('server-port=25565');
+  props.push('motd=MCJAVASERVER');
+  props.push('online-mode=true');
+  fs.writeFileSync(propsPath, props.join('\n') + '\n', { encoding: 'utf8' });
+  console.log('Wrote server.properties with RCON enabled (password saved in file).');
+}
+
 (async () => {
   try {
     await ensureDir();
     await downloadVanillaServer();
     await ensureEula();
+    await ensureServerProperties();
     console.log('Setup complete. Start server with `npm start` and then use the web UI to start the Minecraft server process.');
   } catch (err) {
     console.error('Setup failed:', err && err.message ? err.message : err);
