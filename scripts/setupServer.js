@@ -3,8 +3,8 @@
 // Creates ./minecraft directory and eula.txt
 const fs = require('fs');
 const path = require('path');
-const fetch = require('node-fetch');
 
+// Use the global fetch available in Node 18+. If you run on older Node, install a fetch polyfill or upgrade Node.
 const version = process.env.MC_VERSION || '1.26.2';
 const outDir = path.resolve(__dirname, '..', 'minecraft');
 
