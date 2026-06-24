@@ -1,0 +1,46 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>MCJAVASERVER — Web Console</title>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
+    #console { width: 100%; height: 400px; background: #111; color: #eee; padding: 8px; overflow:auto; white-space: pre-wrap; }
+    input, button { padding: 8px; margin: 4px; }
+  </style>
+</head>
+<body>
+  <h1>MCJAVASERVER</h1>
+  <div id="auth">
+    <div id="registerBox" style="display:none">
+      <h2>Register (first visitor)</h2>
+      <input id="regUser" placeholder="username" /><br/>
+      <input id="regPass" type="password" placeholder="password" /><br/>
+      <button id="doRegister">Create account</button>
+      <div id="regMsg"></div>
+    </div>
+
+    <div id="loginBox" style="display:none">
+      <h2>Login</h2>
+      <input id="loginUser" placeholder="username" /><br/>
+      <input id="loginPass" type="password" placeholder="password" /><br/>
+      <button id="doLogin">Login</button>
+      <div id="loginMsg"></div>
+    </div>
+  </div>
+
+  <div id="admin" style="display:none">
+    <h2>Admin Console</h2>
+    <button id="startBtn">Start Server</button>
+    <button id="stopBtn">Stop Server</button>
+    <button id="seedBtn">Get Seed</button>
+    <div id="console" aria-live="polite"></div>
+    <div>
+      <input id="cmdInput" placeholder="enter server command (e.g. say hello)" style="width:70%" />
+      <button id="sendCmd">Send</button>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

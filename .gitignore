@@ -1,0 +1,6 @@
+node_modules/
+minecraft/*.log
+minecraft/logs/
+data/
+*.db
+.env
