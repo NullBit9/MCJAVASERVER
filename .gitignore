@@ -1,4 +1,5 @@
 node_modules/
+minecraft/server.jar
 minecraft/*.log
 minecraft/logs/
 data/
