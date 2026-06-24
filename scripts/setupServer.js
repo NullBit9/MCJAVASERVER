@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Download PaperMC build for the requested version (default: 1.26.2).
-// Accepts new Mojang-style version strings like "26.2" and legacy "1.26.2".
+// Download Mojang (vanilla) Minecraft server JAR for the requested version.
+// Accepts new-style strings like "26.2" or legacy "1.26.2" and tries sensible variants.
 // Uses Node's global fetch (Node 18+).
 const fs = require('fs');
 const path = require('path');
@@ -19,92 +19,82 @@ async function fileExists(p) {
 
 async function download(url, dest) {
   console.log('Downloading', url);
-  const res = await fetch(url);
-  if (!res.ok) throw new Error('Download failed ' + res.status + ' ' + res.statusText);
-  const tmp = dest + '.tmp';
-  const fileStream = fs.createWriteStream(tmp);
-  await new Promise((resP, rej) => {
-    res.body.pipe(fileStream);
-    res.body.on('error', rej);
-    fileStream.on('finish', resP);
-  });
-  await fs.promises.rename(tmp, dest);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Download failed ' + res.status + ' ' + res.statusText);
+      const tmp = dest + '.tmp';
+      const fileStream = fs.createWriteStream(tmp);
+      await new Promise((resP, rej) => {
+        res.body.pipe(fileStream);
+        res.body.on('error', rej);
+        fileStream.on('finish', resP);
+      });
+      await fs.promises.rename(tmp, dest);
+      return;
+    } catch (err) {
+      console.warn(`Attempt ${attempt} failed: ${err.message}`);
+      if (attempt === 3) throw err;
+      await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+  }
 }
 
 function buildCandidates(raw) {
   const seen = new Set();
-  const push = v => { if (!v) return; if (!seen.has(v)) { seen.add(v); candidates.push(v); } };
   const candidates = [];
-  if (!raw) {
-    push(defaultVersion);
-    return candidates;
-  }
-  // If user provided "26.2" (two-part), try legacy "1.26.2" first, then the raw.
+  const push = v => { if (!v) return; if (!seen.has(v)) { seen.add(v); candidates.push(v); } };
+  if (!raw) { push(defaultVersion); return candidates; }
   if (/^\d+\.\d+$/.test(raw)) {
-    push('1.' + raw); // 26.2 -> 1.26.2
+    push('1.' + raw);
     push(raw);
     return candidates;
   }
-  // If user provided legacy "1.26.2", try that and the short form
   if (/^1\.\d+\.\d+$/.test(raw)) {
     push(raw);
     push(raw.replace(/^1\./, ''));
     return candidates;
   }
-  // Otherwise use raw and default
   push(raw);
   push(defaultVersion);
   return candidates;
 }
 
-async function findPaperVersion() {
+async function findVanillaVersion() {
+  const manifestUrl = 'https://launchermeta.mojang.com/mc/game/version_manifest.json';
+  const resp = await fetch(manifestUrl);
+  if (!resp.ok) throw new Error('Failed to fetch Mojang version manifest: ' + resp.status);
+  const manifest = await resp.json();
+
   const candidates = buildCandidates(rawVersion);
-  for (const v of candidates) {
-    const url = `https://api.papermc.io/v2/projects/paper/versions/${v}`;
-    try {
-      const r = await fetch(url);
-      if (r.ok) {
-        console.log('Using Paper version:', v);
-        return v;
-      }
-    } catch (e) {
-      // ignore and try next
-    }
+  console.log('Version candidates to try:', candidates.join(', '));
+  for (const c of candidates) {
+    const entry = manifest.versions.find(v => v.id === c);
+    if (entry) return entry;
   }
   return null;
 }
 
-async function downloadPaper() {
+async function downloadVanillaServer() {
   const dest = path.join(outDir, 'server.jar');
-  if (await fileExists(dest)) {
-    console.log('server.jar already exists, skipping download');
+  if (await fileExists(dest)) { console.log('server.jar already exists, skipping download'); return; }
+
+  const entry = await findVanillaVersion();
+  if (!entry) {
+    console.warn(`Could not find a vanilla version for MC_VERSION="${rawVersion}". Tried sensible variants.\nPlace a server.jar at ./minecraft/server.jar manually or set MC_VERSION to a valid version (e.g., 1.26.2 or 26.2).`);
     return;
   }
 
-  const found = await findPaperVersion();
-  if (!found) {
-    console.warn(`Could not find a Paper version for MC_VERSION="${rawVersion}". Tried sensible variants.\nPlace a server.jar at ./minecraft/server.jar manually or set MC_VERSION to a valid Paper version (e.g., 1.26.2 or 26.2).`);
-    return;
+  console.log('Found manifest entry for version', entry.id);
+  const verRes = await fetch(entry.url);
+  if (!verRes.ok) throw new Error('Failed to fetch version metadata: ' + verRes.status);
+  const verMeta = await verRes.json();
+  if (!verMeta.downloads || !verMeta.downloads.server || !verMeta.downloads.server.url) {
+    throw new Error('Server download URL not available for version ' + entry.id);
   }
-
-  // Fetch builds for the found version
-  const buildsUrl = `https://api.papermc.io/v2/projects/paper/versions/${found}`;
-  const r = await fetch(buildsUrl);
-  if (!r.ok) { console.warn('PaperMC API not available; skipping automatic jar download.'); return; }
-  const info = await r.json();
-  const builds = info.builds;
-  if (!builds || builds.length === 0) { console.warn('No builds found for version', found); return; }
-  const latest = builds[builds.length - 1];
-  const jarName = `paper-${found}-${latest}.jar`;
-  const downloadUrl = `https://api.papermc.io/v2/projects/paper/versions/${found}/builds/${latest}/downloads/${jarName}`;
-
-  try {
-    await download(downloadUrl, dest);
-    console.log('Downloaded Paper jar to', dest);
-  } catch (err) {
-    console.warn('Failed to download Paper jar:', err.message);
-    console.warn('You can manually place a server jar at ./minecraft/server.jar');
-  }
+  const downloadUrl = verMeta.downloads.server.url;
+  await download(downloadUrl, dest);
+  console.log('Downloaded vanilla server jar to', dest);
 }
 
 async function ensureEula() {
@@ -118,12 +108,12 @@ async function ensureEula() {
 (async () => {
   try {
     await ensureDir();
-    await downloadPaper();
+    await downloadVanillaServer();
     await ensureEula();
     console.log('Setup complete. Start server with `npm start` and then use the web UI to start the Minecraft server process.');
     if (rawVersion) console.log(`Requested MC_VERSION=${rawVersion}`);
   } catch (err) {
-    console.error('Setup failed:', err);
+    console.error('Setup failed:', err && err.message ? err.message : err);
     process.exitCode = 1;
   }
 })();
