@@ -3,6 +3,11 @@
   const regBox = el('registerBox'), loginBox = el('loginBox'), adminBox = el('admin');
   const consoleEl = el('console');
 
+  // Defensive: ensure admin is hidden on initial load unless explicitly shown by login flow
+  if (adminBox && !adminBox.classList.contains('hidden')) {
+    adminBox.classList.add('hidden');
+  }
+
   function addLine(s) { if (!consoleEl) return; consoleEl.textContent += s + '\n'; consoleEl.scrollTop = consoleEl.scrollHeight; }
 
   // Helper to safely show/hide elements
@@ -64,6 +69,10 @@
 
   async function showAdmin(token) {
     if (!adminBox) return;
+
+    // hide auth UI and show admin console explicitly
+    try { hide(regBox); hide(loginBox); } catch(e){}
+
     show(adminBox);
 
     // Ensure the deploy overlay is hidden when admin is shown
@@ -86,19 +95,23 @@
       };
       ws.onclose = () => addLine('[WS closed]');
 
-      el('startBtn').onclick = async () => {
+      const startBtn = el('startBtn');
+      if (startBtn) startBtn.onclick = async () => {
         await fetch('/api/start', { method: 'POST', headers: { ...(authHeaders()), 'content-type':'application/json' }}).catch(e=>addLine('[start failed]'));
       };
-      el('stopBtn').onclick = async () => {
+      const stopBtn = el('stopBtn');
+      if (stopBtn) stopBtn.onclick = async () => {
         await fetch('/api/stop', { method: 'POST', headers: { ...(authHeaders()), 'content-type':'application/json' }}).catch(e=>addLine('[stop failed]'));
       };
-      el('sendCmd').onclick = () => {
+      const sendBtn = el('sendCmd');
+      if (sendBtn) sendBtn.onclick = () => {
         const c = el('cmdInput')?.value;
         if (!c) return;
         ws.send(JSON.stringify({ type:'cmd', cmd: c }));
         el('cmdInput').value = '';
       };
-      el('seedBtn').onclick = async () => {
+      const seedBtn = el('seedBtn');
+      if (seedBtn) seedBtn.onclick = async () => {
         addLine('[requesting seed]');
         try {
           const r = await fetch('/api/seed', { method:'POST', headers: { ...(authHeaders()), 'content-type':'application/json' }});
@@ -112,12 +125,10 @@
     }
   }
 
-  // If token in storage, try to open admin directly
-  const stored = localStorage.getItem('mc_token');
-  if (stored) {
-    hide(loginBox); hide(regBox);
-    showAdmin(stored);
-  }
+  // NOTE: Do NOT auto-open admin based solely on localStorage token on page load.
+  // This prevents the console from appearing unexpectedly. Admin will only be shown
+  // after a successful login (showAdmin is called in the login handler above).
+
 })();
 
 /* Deploy/start animation overlay — append after the main IIFE in public/app.js */
