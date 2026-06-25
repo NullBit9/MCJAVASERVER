@@ -112,3 +112,154 @@
     showAdmin(stored);
   }
 })();
+
+/* Deploy/start animation overlay — append after the main IIFE in public/app.js */
+(function () {
+  // create overlay DOM once
+  if (!document.getElementById('deploy-anim')) {
+    const container = document.createElement('div');
+    container.id = 'deploy-anim';
+    container.innerHTML = `
+      <div id="animStartChip" role="button" tabindex="0">Start Server</div>
+      <div id="animConnector" aria-hidden="true"></div>
+      <div id="animInfo" aria-hidden="true">
+        <div class="panel-title">SERVER</div>
+        <div class="panel-row"><span class="label">Uptime</span><span id="animUptime" class="value">0s</span></div>
+        <div class="panel-row"><span class="label">CPU</span><span id="animCpu" class="value">0%</span></div>
+        <div class="panel-row"><span class="label">Memory</span><span id="animMem" class="value">0MB</span></div>
+      </div>
+      <div id="animGrid" aria-hidden="true">
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+      </div>
+    `;
+    document.body.appendChild(container);
+  }
+
+  const chip = document.getElementById('animStartChip');
+  const conn = document.getElementById('animConnector');
+  const info = document.getElementById('animInfo');
+  const grid = document.getElementById('animGrid');
+  const uptimeEl = document.getElementById('animUptime');
+  const cpuEl = document.getElementById('animCpu');
+  const memEl = document.getElementById('animMem');
+
+  let metricsInterval = null;
+  let startTimestamp = null;
+
+  function formatUptime(ms) {
+    const s = Math.floor(ms / 1000);
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60), rem = s % 60;
+    if (m < 60) return `${m}m ${rem}s`;
+    const h = Math.floor(m / 60), rm = m % 60;
+    return `${h}h ${rm}m`;
+  }
+
+  function startMetricsSimulation() {
+    startTimestamp = Date.now();
+    if (metricsInterval) clearInterval(metricsInterval);
+    metricsInterval = setInterval(() => {
+      const elapsed = Date.now() - startTimestamp;
+      uptimeEl.textContent = formatUptime(elapsed);
+      // simulated CPU/mem — replace with real data fetch if desired
+      const cpu = Math.min(98, Math.round(20 + Math.random()*60));
+      const memMb = Math.round(256 + Math.random()*1024);
+      cpuEl.textContent = `${cpu}%`;
+      memEl.textContent = `${memMb}MB`;
+    }, 1000);
+  }
+
+  function stopMetricsSimulation() {
+    if (metricsInterval) { clearInterval(metricsInterval); metricsInterval = null; }
+  }
+
+  function flashRandomCells(times = 6, interval = 140) {
+    const cells = Array.from(grid.querySelectorAll('.cell'));
+    for (let i = 0; i < times; i++) {
+      setTimeout(() => {
+        const idx = Math.floor(Math.random() * cells.length);
+        const c = cells[idx];
+        c.classList.remove('flash');
+        // trigger reflow so animation restarts reliably
+        void c.offsetWidth;
+        c.classList.add('flash');
+        // remove class after animation ends
+        setTimeout(() => c.classList.remove('flash'), 1200);
+      }, i * interval);
+    }
+  }
+
+  async function callStartApi() {
+    // try to call /api/start with existing token
+    try {
+      const token = localStorage.getItem('mc_token');
+      const headers = token ? { 'Authorization': 'Bearer ' + token } : {};
+      await fetch('/api/start', { method: 'POST', headers: { ...headers, 'content-type': 'application/json' }});
+    } catch (e) {
+      // ignore fetch errors — animation still runs
+      console.debug('start API call failed', e);
+    }
+  }
+
+  // animation sequence
+  async function triggerAnimAndStart() {
+    // visually activate chip
+    chip.classList.add('glow');
+
+    // expand connector to visually reach the info panel
+    conn.style.width = '170px';
+
+    // show info panel
+    info.classList.add('visible');
+
+    // start simulated metrics
+    startMetricsSimulation();
+
+    // flash grid cells to dirt blocks
+    flashRandomCells(9, 120);
+
+    // call start API (fire-and-forget)
+    callStartApi();
+
+    // keep glow for a few seconds, then fade
+    setTimeout(() => {
+      chip.classList.remove('glow');
+    }, 2500);
+
+    // shrink connector after a bit
+    setTimeout(() => {
+      conn.style.width = '0';
+      info.classList.remove('visible');
+      // stop metrics after panel hides
+      setTimeout(stopMetricsSimulation, 400);
+    }, 3200);
+  }
+
+  // wire the overlay chip to trigger the same behavior as the Start button
+  chip.addEventListener('click', (e) => { triggerAnimAndStart(); });
+
+  // also wire existing in-page start button (if present) so clicking it also triggers the overlay animation
+  function wireStartButton() {
+    const pageStartBtn = document.getElementById('startBtn');
+    if (pageStartBtn) {
+      pageStartBtn.addEventListener('click', (e) => {
+        // run animation in parallel to whatever the page does
+        triggerAnimAndStart();
+      });
+    }
+  }
+
+  // attempt to wire immediately; if the admin UI is rendered later, observe for it
+  wireStartButton();
+
+  // Observe DOM in case #startBtn appears later (e.g., after login)
+  const observer = new MutationObserver(() => {
+    if (document.getElementById('startBtn')) {
+      wireStartButton();
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+})();
