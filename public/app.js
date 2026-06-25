@@ -65,6 +65,13 @@
   async function showAdmin(token) {
     if (!adminBox) return;
     show(adminBox);
+
+    // Ensure the deploy overlay is hidden when admin is shown
+    try {
+      const overlay = document.getElementById('deploy-anim');
+      if (overlay) overlay.style.display = 'none';
+    } catch(e) {}
+
     // Setup websocket
     const t = token || localStorage.getItem('mc_token');
     try {
@@ -139,32 +146,19 @@
     `;
     document.body.appendChild(container);
 
-    // initial visibility based on login status or admin presence
-    const adminEl = document.getElementById('admin');
+    // initial visibility: only hide overlay when an auth token exists
     const token = localStorage.getItem('mc_token');
-    if (token || (adminEl && !adminEl.classList.contains('hidden'))) {
+    if (token) {
       container.style.display = 'none';
     } else {
       container.style.display = 'block';
     }
 
-    // helper to update overlay visibility when auth state changes
-    function updateOverlayVisibility() {
-      const admin = document.getElementById('admin');
-      const hasToken = !!localStorage.getItem('mc_token');
-      if ((admin && !admin.classList.contains('hidden')) || hasToken) {
-        container.style.display = 'none';
-      } else {
-        container.style.display = 'block';
-      }
-    }
-
-    // observe mutations to detect when admin becomes visible/hidden
-    const visObserver = new MutationObserver(() => updateOverlayVisibility());
-    visObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
-
     // listen for storage events (in case mc_token is set from other tab)
-    window.addEventListener('storage', () => updateOverlayVisibility());
+    window.addEventListener('storage', () => {
+      const hasToken = !!localStorage.getItem('mc_token');
+      container.style.display = hasToken ? 'none' : 'block';
+    });
 
     const chip = document.getElementById('animStartChip');
     const conn = document.getElementById('animConnector');
@@ -234,10 +228,10 @@
     }
 
     // animation sequence
-    async function triggerAnimAndStart() {
+    async function triggerAnimAndStart(forceRun = false) {
       // do not run if overlay hidden
-      if (container.style.display === 'none') return;
-      if (animPlayed) return; // play only once automatically; clicking chip still triggers but we'll guard
+      if (container.style.display === 'none' && !forceRun) return;
+      if (animPlayed && !forceRun) return; // play only once automatically; clicking chip may force
       animPlayed = true;
 
       // visually activate chip
@@ -273,7 +267,7 @@
     }
 
     // wire the overlay chip to trigger the same behavior as the Start button
-    chip.addEventListener('click', (e) => { triggerAnimAndStart(); });
+    chip.addEventListener('click', (e) => { triggerAnimAndStart(true); });
 
     // also wire existing in-page start button (if present) so clicking it also triggers the overlay animation
     function wireStartButton() {
@@ -281,7 +275,7 @@
       if (pageStartBtn) {
         pageStartBtn.addEventListener('click', (e) => {
           // only run overlay animation if overlay is visible (i.e., before login)
-          if (container.style.display !== 'none') triggerAnimAndStart();
+          triggerAnimAndStart(false);
         });
       }
     }
