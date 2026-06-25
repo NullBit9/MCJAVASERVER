@@ -125,9 +125,7 @@
     }
   }
 
-  // NOTE: Do NOT auto-open admin based solely on localStorage token on page load.
-  // This prevents the console from appearing unexpectedly. Admin will only be shown
-  // after a successful login (showAdmin is called in the login handler above).
+  // NOTE: Do NOT auto-open admin based solely based on localStorage token on page load.
 
 })();
 
@@ -138,9 +136,9 @@
     const container = document.createElement('div');
     container.id = 'deploy-anim';
 
-    // build a 4x4 grid of cells for more dirt spawn targets
+    // build an 8x8 grid of cells for dirt spawn targets (64 cells)
     let gridCells = '';
-    for (let i = 0; i < 16; i++) gridCells += '<div class="cell"></div>';
+    for (let i = 0; i < 64; i++) gridCells += '<div class="cell"></div>';
 
     container.innerHTML = `
       <div id="animStartChip" role="button" tabindex="0">Start Server</div>
@@ -210,7 +208,7 @@
       if (metricsInterval) { clearInterval(metricsInterval); metricsInterval = null; }
     }
 
-    function flashRandomCells(times = 10, interval = 110) {
+    function flashRandomCells(times = 28, interval = 90) {
       const cells = Array.from(grid.querySelectorAll('.cell'));
       for (let i = 0; i < times; i++) {
         setTimeout(() => {
@@ -221,7 +219,7 @@
           void c.offsetWidth;
           c.classList.add('flash');
           // remove class after animation ends
-          setTimeout(() => c.classList.remove('flash'), 1400);
+          setTimeout(() => c.classList.remove('flash'), 1600);
         }, i * interval);
       }
     }
@@ -249,7 +247,7 @@
       chip.classList.add('glow');
 
       // expand connector to visually reach the info panel
-      conn.style.width = '220px';
+      conn.style.width = '300px';
 
       // show info panel (ensure it's above grid)
       info.classList.add('visible');
@@ -258,7 +256,7 @@
       startMetricsSimulation();
 
       // flash grid cells to dirt blocks with sweep
-      flashRandomCells(14, 90);
+      flashRandomCells(36, 70);
 
       // call start API (fire-and-forget)
       callStartApi();
@@ -266,7 +264,7 @@
       // keep glow for a few seconds, then fade
       setTimeout(() => {
         chip.classList.remove('glow');
-      }, 2600);
+      }, 3000);
 
       // shrink connector after a bit
       setTimeout(() => {
@@ -274,7 +272,7 @@
         info.classList.remove('visible');
         // stop metrics after panel hides
         setTimeout(stopMetricsSimulation, 400);
-      }, 3600);
+      }, 4200);
     }
 
     // wire the overlay chip to trigger the same behavior as the Start button

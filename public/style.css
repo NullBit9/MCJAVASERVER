@@ -78,7 +78,7 @@ body{font-family: Inter, 'Segoe UI', Roboto, -apple-system, system-ui, Arial, He
   position: fixed;
   top: 24px;
   right: 24px;
-  width: 420px;
+  width: 640px;
   pointer-events: none;
   z-index: 80;
   font-family: inherit;
@@ -147,20 +147,20 @@ body{font-family: Inter, 'Segoe UI', Roboto, -apple-system, system-ui, Arial, He
 #animInfo .panel-row { display:flex; justify-content:space-between; padding:6px 0; font-size:14px; color:#e6e6e6; }
 #animInfo .label { color:#9aa0a6; font-size:12px; }
 
-/* Grid cells (background mock boxes) — expanded to 4x4 */
+/* Grid cells (background mock boxes) — expanded to 8x8 */
 #animGrid {
   position: absolute;
-  right: -100px;
+  right: -260px;
   top: -10px;
-  width: 320px;
+  width: 520px;
   display:grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap:8px;
+  grid-template-columns: repeat(8, 1fr);
+  gap:6px;
   pointer-events: none;
   z-index:80;
 }
 #animGrid .cell {
-  height: 52px;
+  height: 48px;
   background: rgba(255,255,255,0.02);
   border-radius: 4px;
   border:1px solid rgba(255,255,255,0.02);
@@ -192,5 +192,5 @@ body{font-family: Inter, 'Segoe UI', Roboto, -apple-system, system-ui, Arial, He
 @media (max-width:520px) {
   #deploy-anim { right: 12px; left: 12px; width: auto; }
   #animInfo { width: calc(100% - 60px); right: 12px; top: 68px; }
-  #animGrid { right: -40px; grid-template-columns: repeat(3,1fr); width: 220px }
+  #animGrid { right: -40px; grid-template-columns: repeat(4,1fr); width: 220px }
 }
