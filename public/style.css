@@ -78,25 +78,26 @@ body{font-family: Inter, 'Segoe UI', Roboto, -apple-system, system-ui, Arial, He
   position: fixed;
   top: 24px;
   right: 24px;
-  width: 360px;
+  width: 420px;
   pointer-events: none;
   z-index: 80;
   font-family: inherit;
   color: #fff;
 }
 
-/* Start chip */
+/* Start chip (cornered look) */
 #animStartChip {
   pointer-events: auto;
   display: inline-block;
   background: #e6e6e6;
   color: #0b0b0d;
   padding: 10px 16px;
-  border-radius: 6px;
+  border-radius: 6px; /* slightly cornered */
   font-family: monospace;
   box-shadow: 0 6px 18px rgba(0,0,0,0.6);
   transform-origin: left center;
   cursor: pointer;
+  z-index:92;
 }
 
 /* green glow when active */
@@ -120,63 +121,76 @@ body{font-family: Inter, 'Segoe UI', Roboto, -apple-system, system-ui, Arial, He
   background: linear-gradient(90deg,#9b3bff,#5ee3c7);
   transition: width .6s cubic-bezier(.2,.9,.3,1);
   box-shadow: 0 0 8px rgba(127,27,220,0.28);
+  z-index:81;
 }
 
-/* Info panel */
+/* Info panel (cornered boxed and above grid) */
 #animInfo {
   pointer-events: none;
   position: absolute;
   right: 0;
   top: 72px;
   width: 320px;
-  background: rgba(10,10,10,0.9);
+  background: rgba(10,10,10,0.95);
   border-radius: 8px;
   padding: 12px;
-  border: 1px solid rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
   box-shadow: 0 18px 40px rgba(0,0,0,0.6);
   opacity: 0;
   transform: translateY(-8px);
   transition: opacity .36s ease, transform .36s ease;
   font-size: 13px;
+  z-index:90; /* above grid */
 }
 #animInfo.visible { opacity: 1; transform: translateY(0); }
 #animInfo .panel-title { font-size: 12px; color:#aab0b5; letter-spacing:2px; margin-bottom:8px; }
 #animInfo .panel-row { display:flex; justify-content:space-between; padding:6px 0; font-size:14px; color:#e6e6e6; }
 #animInfo .label { color:#9aa0a6; font-size:12px; }
 
-/* Grid cells (background mock boxes) */
+/* Grid cells (background mock boxes) — expanded to 4x4 */
 #animGrid {
   position: absolute;
-  right: -60px;
-  top: -20px;
-  width: 180px;
+  right: -100px;
+  top: -10px;
+  width: 320px;
   display:grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap:8px;
   pointer-events: none;
+  z-index:80;
 }
 #animGrid .cell {
-  height: 48px;
+  height: 52px;
   background: rgba(255,255,255,0.02);
   border-radius: 4px;
   border:1px solid rgba(255,255,255,0.02);
   transition: background .18s ease, transform .24s ease;
+  position:relative;
+  overflow:hidden;
 }
 
-/* flash animation: replace with dirt image for a moment */
+/* flash animation: replace with dirt image for a moment plus sweep reveal */
 #animGrid .cell.flash {
-  animation: flashDirt 1.1s forwards;
+  background: url('/images/dirt.svg') center/cover no-repeat;
 }
-@keyframes flashDirt {
-  0% { transform: scale(0.98); opacity: 0.95; background: rgba(255,255,255,0.02); }
-  30% { transform: scale(1.02); background: url('/images/dirt.svg') center/cover no-repeat; opacity: 1; }
-  90% { transform: scale(1.00); }
-  100% { transform: scale(1.00); background: rgba(255,255,255,0.02); opacity: 1; }
+#animGrid .cell.flash::after {
+  content:'';
+  position:absolute;
+  left:0;top:0;right:0;bottom:0;
+  background: linear-gradient(90deg, rgba(10,10,10,0.7) 0%, rgba(10,10,10,0.0) 45%, rgba(10,10,10,0.0) 55%, rgba(10,10,10,0.7) 100%);
+  transform: translateX(-120%);
+  animation: sweep 1.1s forwards;
+}
+@keyframes sweep {
+  0% { transform: translateX(-120%); opacity: 1 }
+  45% { transform: translateX(0%); opacity: 1 }
+  75% { transform: translateX(120%); opacity: 1 }
+  100% { transform: translateX(120%); opacity: 0 }
 }
 
 /* small responsive tweak */
 @media (max-width:520px) {
   #deploy-anim { right: 12px; left: 12px; width: auto; }
   #animInfo { width: calc(100% - 60px); right: 12px; top: 68px; }
-  #animGrid { right: -40px; }
+  #animGrid { right: -40px; grid-template-columns: repeat(3,1fr); width: 220px }
 }

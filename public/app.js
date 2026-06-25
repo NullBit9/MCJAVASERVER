@@ -119,6 +119,11 @@
   if (!document.getElementById('deploy-anim')) {
     const container = document.createElement('div');
     container.id = 'deploy-anim';
+
+    // build a 4x4 grid of cells for more dirt spawn targets
+    let gridCells = '';
+    for (let i = 0; i < 16; i++) gridCells += '<div class="cell"></div>';
+
     container.innerHTML = `
       <div id="animStartChip" role="button" tabindex="0">Start Server</div>
       <div id="animConnector" aria-hidden="true"></div>
@@ -129,9 +134,7 @@
         <div class="panel-row"><span class="label">Memory</span><span id="animMem" class="value">0MB</span></div>
       </div>
       <div id="animGrid" aria-hidden="true">
-        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
-        <div class="cell"></div><div class="cell"></div><div class="cell"></div>
+        ${gridCells}
       </div>
     `;
     document.body.appendChild(container);
@@ -173,6 +176,7 @@
 
     let metricsInterval = null;
     let startTimestamp = null;
+    let animPlayed = false;
 
     function formatUptime(ms) {
       const s = Math.floor(ms / 1000);
@@ -201,7 +205,7 @@
       if (metricsInterval) { clearInterval(metricsInterval); metricsInterval = null; }
     }
 
-    function flashRandomCells(times = 6, interval = 140) {
+    function flashRandomCells(times = 10, interval = 110) {
       const cells = Array.from(grid.querySelectorAll('.cell'));
       for (let i = 0; i < times; i++) {
         setTimeout(() => {
@@ -212,7 +216,7 @@
           void c.offsetWidth;
           c.classList.add('flash');
           // remove class after animation ends
-          setTimeout(() => c.classList.remove('flash'), 1200);
+          setTimeout(() => c.classList.remove('flash'), 1400);
         }, i * interval);
       }
     }
@@ -233,21 +237,23 @@
     async function triggerAnimAndStart() {
       // do not run if overlay hidden
       if (container.style.display === 'none') return;
+      if (animPlayed) return; // play only once automatically; clicking chip still triggers but we'll guard
+      animPlayed = true;
 
       // visually activate chip
       chip.classList.add('glow');
 
       // expand connector to visually reach the info panel
-      conn.style.width = '170px';
+      conn.style.width = '220px';
 
-      // show info panel
+      // show info panel (ensure it's above grid)
       info.classList.add('visible');
 
       // start simulated metrics
       startMetricsSimulation();
 
-      // flash grid cells to dirt blocks
-      flashRandomCells(9, 120);
+      // flash grid cells to dirt blocks with sweep
+      flashRandomCells(14, 90);
 
       // call start API (fire-and-forget)
       callStartApi();
@@ -255,7 +261,7 @@
       // keep glow for a few seconds, then fade
       setTimeout(() => {
         chip.classList.remove('glow');
-      }, 2500);
+      }, 2600);
 
       // shrink connector after a bit
       setTimeout(() => {
@@ -263,7 +269,7 @@
         info.classList.remove('visible');
         // stop metrics after panel hides
         setTimeout(stopMetricsSimulation, 400);
-      }, 3200);
+      }, 3600);
     }
 
     // wire the overlay chip to trigger the same behavior as the Start button
@@ -291,5 +297,10 @@
       }
     });
     observer.observe(document.body, { childList: true, subtree: true });
+
+    // Automatically play animation once shortly after load if overlay is visible
+    setTimeout(() => {
+      if (container.style.display !== 'none') triggerAnimAndStart();
+    }, 800);
   }
 })();
