@@ -4,6 +4,7 @@
 // Uses Node's global fetch (Node 18+).
 const fs = require('fs');
 const path = require('path');
+const stream = require('stream');
 
 const rawVersion = process.env.MC_VERSION || '';
 const defaultVersion = '1.26.2';
@@ -17,20 +18,50 @@ async function fileExists(p) {
   try { await fs.promises.access(p); return true; } catch { return false; }
 }
 
+async function writeResponseToFile(res, dest) {
+  // Handle both Node.js _stream.Readable_ and WHATWG ReadableStream (fetch in Node 18+)
+  const tmp = dest + '.tmp';
+
+  // If res.body has pipe (Node stream), use pipe
+  if (res.body && typeof res.body.pipe === 'function') {
+    const fileStream = fs.createWriteStream(tmp);
+    await new Promise((resolve, reject) => {
+      res.body.pipe(fileStream);
+      res.body.on('error', reject);
+      fileStream.on('finish', resolve);
+      fileStream.on('error', reject);
+    });
+    await fs.promises.rename(tmp, dest);
+    return;
+  }
+
+  // If WHATWG ReadableStream: convert to Node stream (Readable.fromWeb)
+  if (res.body && typeof res.body.getReader === 'function' && stream.Readable && typeof stream.Readable.fromWeb === 'function') {
+    const nodeStream = stream.Readable.fromWeb(res.body);
+    const fileStream = fs.createWriteStream(tmp);
+    await new Promise((resolve, reject) => {
+      nodeStream.pipe(fileStream);
+      nodeStream.on('error', reject);
+      fileStream.on('finish', resolve);
+      fileStream.on('error', reject);
+    });
+    await fs.promises.rename(tmp, dest);
+    return;
+  }
+
+  // Fallback: read into memory via arrayBuffer and write
+  const arr = await res.arrayBuffer();
+  await fs.promises.writeFile(tmp, Buffer.from(arr));
+  await fs.promises.rename(tmp, dest);
+}
+
 async function download(url, dest) {
   console.log('Downloading', url);
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       const res = await fetch(url);
       if (!res.ok) throw new Error('Download failed ' + res.status + ' ' + res.statusText);
-      const tmp = dest + '.tmp';
-      const fileStream = fs.createWriteStream(tmp);
-      await new Promise((resP, rej) => {
-        res.body.pipe(fileStream);
-        res.body.on('error', rej);
-        fileStream.on('finish', resP);
-      });
-      await fs.promises.rename(tmp, dest);
+      await writeResponseToFile(res, dest);
       return;
     } catch (err) {
       console.warn(`Attempt ${attempt} failed: ${err.message}`);
