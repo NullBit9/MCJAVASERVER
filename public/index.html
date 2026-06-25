@@ -3,44 +3,71 @@
 <head>
   <meta charset="utf-8" />
   <title>MCJAVASERVER — Web Console</title>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
-    #console { width: 100%; height: 400px; background: #111; color: #eee; padding: 8px; overflow:auto; white-space: pre-wrap; }
-    input, button { padding: 8px; margin: 4px; }
-    .hidden { display: none !important; }
-  </style>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>MCJAVASERVER</h1>
-  <div id="auth">
-    <div id="registerBox">
-      <h2>Register (first visitor)</h2>
-      <input id="regUser" placeholder="username" /><br/>
-      <input id="regPass" type="password" placeholder="password" /><br/>
-      <button id="doRegister">Create account</button>
-      <div id="regMsg"></div>
+  <header class="topnav subtle">
+    <div class="nav-inner">
+      <div class="logo">MCJAVASERVER</div>
+      <nav class="links">
+        <a href="#">Product</a>
+        <a href="#">Docs</a>
+        <a href="#">Pricing</a>
+      </nav>
     </div>
+  </header>
 
-    <div id="loginBox">
-      <h2>Login</h2>
-      <input id="loginUser" placeholder="username" /><br/>
-      <input id="loginPass" type="password" placeholder="password" /><br/>
-      <button id="doLogin">Login</button>
-      <div id="loginMsg"></div>
-    </div>
-  </div>
+  <main class="center-hero">
+    <div class="center-inner">
+      <div id="auth" class="center-auth">
+        <!-- Register (first visitor) -->
+        <div id="registerBox" class="auth-card auth-register">
+          <div class="auth-header">
+            <h2>Register</h2>
+            <p class="muted">Create the first administrator account</p>
+          </div>
+          <div class="auth-body">
+            <input id="regUser" placeholder="username" autocomplete="username" />
+            <input id="regPass" type="password" placeholder="password" autocomplete="new-password" />
+            <div class="row"><button id="doRegister" class="btn primary large">Create account</button></div>
+            <div id="regMsg" class="msg"></div>
+          </div>
+        </div>
 
-  <div id="admin" class="hidden">
-    <h2>Admin Console</h2>
-    <button id="startBtn">Start Server</button>
-    <button id="stopBtn">Stop Server</button>
-    <button id="seedBtn">Get Seed</button>
-    <div id="console" aria-live="polite"></div>
-    <div>
-      <input id="cmdInput" placeholder="enter server command (e.g. say hello)" style="width:70%" />
-      <button id="sendCmd">Send</button>
+        <!-- Login (hidden unless needed) -->
+        <div id="loginBox" class="auth-card auth-login hidden">
+          <div class="auth-header">
+            <h2>Login</h2>
+            <p class="muted">Sign in to manage the server</p>
+          </div>
+          <div class="auth-body">
+            <input id="loginUser" placeholder="username" autocomplete="username" />
+            <input id="loginPass" type="password" placeholder="password" autocomplete="current-password" />
+            <div class="row"><button id="doLogin" class="btn large">Login</button></div>
+            <div id="loginMsg" class="msg"></div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </main>
+
+  <!-- Admin console (unchanged, hidden by default) -->
+  <section class="admin-wrap">
+    <div id="admin" class="card hidden">
+      <h2>Admin Console</h2>
+      <div class="controls">
+        <button id="startBtn" class="btn">Start Server</button>
+        <button id="stopBtn" class="btn">Stop Server</button>
+        <button id="seedBtn" class="btn">Get Seed</button>
+      </div>
+      <div id="console" class="console" aria-live="polite"></div>
+      <div class="cmd-row">
+        <input id="cmdInput" placeholder="enter server command (e.g. say hello)" />
+        <button id="sendCmd" class="btn">Send</button>
+      </div>
+    </div>
+  </section>
 
   <script src="/app.js"></script>
 </body>

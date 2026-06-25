@@ -1,4 +1,62 @@
-body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
-#console { width: 100%; height: 400px; background: #111; color: #eee; padding: 8px; overflow:auto; white-space: pre-wrap; }
-input, button { padding: 8px; margin: 4px; }
-.hidden { display: none !important; }
+/* Global theme variables */
+:root{
+  --bg:#07070a;
+  --panel:#0f1113;
+  --muted:#9aa0a6;
+  --accent1:#7f1bdc;
+  --accent2:#5ee3c7;
+  --white:#ffffff;
+  --glass: rgba(255,255,255,0.03);
+}
+html,body{height:100%;margin:0}
+body{font-family: Inter, 'Segoe UI', Roboto, -apple-system, system-ui, Arial, Helvetica, sans-serif;background: linear-gradient(180deg,#050507 0%, #0a0b0e 60%);color:var(--muted);}
+
+/* Top nav (subtle) */
+.topnav.subtle{background:transparent;border-bottom:1px solid rgba(255,255,255,0.02)}
+.topnav .nav-inner{max-width:1100px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between}
+.topnav .logo{color:var(--white);font-weight:700}
+.topnav .links a{color:var(--muted);margin-left:18px;text-decoration:none}
+
+/* Centered hero (single-card focus) */
+.center-hero{display:flex;align-items:center;justify-content:center;height:calc(100vh - 64px);padding:20px}
+.center-inner{max-width:900px;width:100%;display:flex;align-items:center;justify-content:center}
+.center-auth{display:flex;gap:20px;align-items:center;justify-content:center}
+
+/* Auth card */
+.auth-card{background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:20px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);min-width:320px;box-shadow:0 18px 40px rgba(0,0,0,0.6)}
+.auth-header h2{color:var(--white);margin:0 0 6px 0}
+.auth-header .muted{color:#b7bdc1;margin:0 0 12px 0;font-size:14px}
+.auth-body{display:flex;flex-direction:column}
+.auth-body input{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--white);font-size:14px}
+
+/* Gradient accent for register card */
+.auth-register{position:relative;overflow:hidden}
+.auth-register::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--accent1),var(--accent2));opacity:0.06;pointer-events:none}
+
+/* Decorative left border */
+.auth-register::after{content:"";position:absolute;left:0;top:0;height:100%;width:6px;background:linear-gradient(180deg,var(--accent1),var(--accent2));border-top-left-radius:12px;border-bottom-left-radius:12px}
+
+.row{display:flex;justify-content:flex-end;margin-top:8px}
+.msg{color:#f28b82;margin-top:6px}
+
+/* Buttons */
+.btn{background:transparent;color:var(--white);border:1px solid rgba(255,255,255,0.06);padding:10px 14px;border-radius:8px;cursor:pointer}
+.btn.primary{background:var(--white);color:#0a0b0e;border:none}
+.btn.large{padding:12px 18px;font-size:16px}
+
+/* Hidden helper */
+.hidden{display:none !important}
+
+/* Admin console (kept from previous theme) */
+.admin-wrap{max-width:1100px;margin:24px auto;padding:0 20px}
+.console{background:#0b0b0d;color:#e7e7e7;padding:12px;border-radius:8px;height:300px;overflow:auto;border:1px solid rgba(255,255,255,0.04);margin-top:12px}
+.controls{display:flex;gap:8px;margin-bottom:8px}
+.cmd-row{display:flex;gap:8px;margin-top:10px}
+.cmd-row input{flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.02);color:var(--white)}
+
+/* Responsive */
+@media (max-width:720px){
+  .center-inner{padding:0 10px}
+  .center-auth{flex-direction:column}
+  .auth-card{min-width:unset;width:100%}
+}
