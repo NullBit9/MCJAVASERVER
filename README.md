@@ -1,6 +1,6 @@
 # MCJAVASERVER
 
-Scaffold for a Minecraft Java 1.26+/26.x (vanilla) server with a web frontend. The site allows the very first visitor to register (single initial admin). That admin can log in from any computer and control the server console, seed, chat commands via the web UI.
+Scaffold for a Minecraft Java 1.26+/26.x (vanilla) server with a web frontend. The site allows the very first visitor to register as the single admin. That admin can log in from any computer and control the server console, seed, chat commands via the web UI.
 
 ## Requirements
 - Node.js 18+ (v26 tested)
@@ -27,8 +27,8 @@ npm install
 
 Automated (recommended):
 
+*Example: download Mojang vanilla server for 26.2*
 ```sh
-# Example: download Mojang vanilla server for 26.2
 MC_VERSION="26.2" node scripts/setupServer.js
 ```
 
@@ -41,8 +41,6 @@ Download the server JAR from the official Mojang page and place it into the repo
 - https://www.minecraft.net/en-us/download/server
 
 ```sh
-# create the folder (if missing) and move the downloaded file into the project
-mkdir -p minecraft
 mv /path/to/server.jar minecraft/server.jar
 ```
 
